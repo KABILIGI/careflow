@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>CareGuide – Living Patient Experience</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Fraunces:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sage: #5C8C6E;
+      --sage-light: #A8C5B5;
+      --sage-pale: #EBF4EF;
+      --teal: #3A7D8C;
+      --teal-light: #B2D8DF;
+      --warm: #F5EFE6;
+      --clay: #C97B5A;
+      --clay-light: #F2D5C4;
+      --charcoal: #2C3E35;
+      --mist: #F0F5F2;
+      --white: #FDFEFE;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #e8ede9;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    h1, h2, h3, .serif { font-family: 'Fraunces', serif; }
+
+    /* Phone Shell */
+    .phone-shell {
+      width: 390px;
+      min-height: 844px;
+      max-height: 844px;
+      background: var(--white);
+      border-radius: 48px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 40px 100px rgba(44,62,53,0.25), 0 0 0 1px rgba(44,62,53,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(92,140,110,0.5); }
+      70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(92,140,110,0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(92,140,110,0); }
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(1.04); opacity: 1; }
+    }
+    @keyframes slideRight {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideLeft {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes checkPop {
+      0% { transform: scale(0); }
+      60% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    @keyframes dotBlink {
+      0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes progressFill {
+      from { width: 0%; }
+      to { width: var(--target-w); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .anim-fadeup { animation: fadeUp 0.45s cubic-bezier(0.22,1,0.36,1) forwards; }
+    .anim-fadein { animation: fadeIn 0.35s ease forwards; }
+    .anim-check { animation: checkPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+    .anim-breathe { animation: breathe 3s ease-in-out infinite; }
+
+    .stagger-1 { animation-delay: 0.05s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.12s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.19s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.26s; opacity: 0; }
+    .stagger-5 { animation-delay: 0.33s; opacity: 0; }
+
+    .pulse-btn { animation: pulse-ring 2.2s cubic-bezier(0.455,0.03,0.515,0.955) infinite; }
+
+    .screen { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+    .screen::-webkit-scrollbar { display: none; }
+
+    .dot-loader span {
+      display: inline-block; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--sage);
+      animation: dotBlink 1.4s ease-in-out infinite;
+    }
+    .dot-loader span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+    .symptom-chip {
+      transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .symptom-chip:active { transform: scale(0.94); }
+
+    .nav-btn {
+      transition: all 0.18s ease;
+    }
+    .nav-btn:active { transform: scale(0.92); }
+
+    .progress-bar-inner {
+      animation: progressFill 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+
+    .card-hover {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:active { transform: scale(0.97); }
+
+    .shimmer-bg {
+      background: linear-gradient(90deg, #f0f5f2 25%, #e0ede5 50%, #f0f5f2 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s ease infinite;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--sage);
+      padding: 12px 24px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* Bottom nav */
+    .bottom-nav {
+      background: rgba(253,254,254,0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(92,140,110,0.12);
+      padding: 10px 0 20px;
+      display: flex;
+      justify-content: space-around;
+      flex-shrink: 0;
+    }
+
+    .floating-cta {
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to top, var(--white) 70%, transparent);
+      padding: 16px 24px 24px;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ─── ICONS ─── */
+const Icon = ({ name, size = 20, color = "currentColor", strokeWidth = 1.8 }) => {
+  const paths = {
+    heart: <><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></>,
+    calendar: <><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>,
+    map: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></>,
+    checklist: <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>,
+    home: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></>,
+    chevronRight: <><polyline points="9 18 15 12 9 6"/></>,
+    chevronLeft: <><polyline points="15 18 9 12 15 6"/></>,
+    chevronDown: <><polyline points="6 9 12 15 18 9"/></>,
+    check: <><polyline points="20 6 9 17 4 12"/></>,
+    alert: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+    phone: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.42 2 2 0 0 1 3.6 2.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.16 6.16l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>,
+    user: <><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+    clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+    star: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
+    x: <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>,
+    wifi: <><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></>,
+    thermometer: <><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></>,
+    pill: <><path d="M10.5 3.5l10 10a5 5 0 0 1-7.07 7.07l-10-10a5 5 0 0 1 7.07-7.07z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></>,
+    arrow: <><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></>,
+    plus: <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
+    location: <><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></>,
+    bell: <><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      {paths[name]}
+    </svg>
+  );
+};
+
+/* ─── STATUS BAR ─── */
+const StatusBar = ({ light = false }) => (
+  <div className={`px-6 pt-3 pb-2 flex justify-between items-center flex-shrink-0 ${light ? 'bg-transparent' : ''}`}
+    style={{ background: light ? 'transparent' : 'var(--sage)' }}>
+    <span className="text-xs font-medium" style={{ color: light ? 'var(--charcoal)' : 'white', opacity: light ? 0.6 : 0.9 }}>9:41</span>
+    <div className="flex items-center gap-1">
+      <Icon name="wifi" size={12} color={light ? '#2C3E35' : 'white'} strokeWidth={2} />
+      <span className="text-xs" style={{ color: light ? 'var(--charcoal)' : 'white', opacity: 0.7 }}>●●●</span>
+    </div>
+  </div>
+);
+
+/* ─── BOTTOM NAV ─── */
+const BottomNav = ({ active, onNav }) => {
+  const items = [
+    { id: 'home', icon: 'home', label: 'Home' },
+    { id: 'symptoms', icon: 'heart', label: 'Symptoms' },
+    { id: 'book', icon: 'calendar', label: 'Book' },
+    { id: 'navigate', icon: 'map', label: 'Navigate' },
+    { id: 'followup', icon: 'checklist', label: 'Follow-up' },
+  ];
+  return (
+    <div className="bottom-nav">
+      {items.map(item => (
+        <button key={item.id} onClick={() => onNav(item.id)}
+          className="nav-btn flex flex-col items-center gap-0.5 px-2"
+          style={{ color: active === item.id ? 'var(--sage)' : '#94A3A8' }}>
+          <Icon name={item.icon} size={20} color={active === item.id ? 'var(--sage)' : '#94A3A8'} strokeWidth={active === item.id ? 2.2 : 1.6} />
+          <span style={{ fontSize: '10px', fontWeight: active === item.id ? 600 : 400 }}>{item.label}</span>
+          {active === item.id && <div style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--sage)', marginTop: 1 }} />}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+/* ─── PROGRESS BAR ─── */
+const ProgressBar = ({ step, total, label }) => {
+  const pct = Math.round((step / total) * 100);
+  return (
+    <div style={{ padding: '8px 24px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 11, color: 'var(--sage)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{label}</span>
+        <span style={{ fontSize: 11, color: '#94A3A8' }}>{step} of {total}</span>
+      </div>
+      <div style={{ height: 4, background: 'var(--sage-pale)', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${pct}%`, background: 'var(--sage)', borderRadius: 8, transition: 'width 0.5s cubic-bezier(0.22,1,0.36,1)' }} />
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   SCREEN 1 — HOME / WELCOME
+══════════════════════════════════════ */
+const HomeScreen = ({ onNav }) => {
+  const [timeOfDay] = useState(() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  });
+
+  const steps = [
+    { id: 'symptoms', icon: 'thermometer', color: '#C97B5A', bg: '#F2D5C4', label: 'Check Symptoms', desc: 'Tell us how you feel', step: 1 },
+    { id: 'book', icon: 'calendar', color: 'var(--teal)', bg: 'var(--teal-light)', label: 'Book Appointment', desc: 'Find the right time', step: 2 },
+    { id: 'navigate', icon: 'location', color: 'var(--sage)', bg: 'var(--sage-pale)', label: 'Navigate Hospital', desc: 'Step-by-step guidance', step: 3 },
+    { id: 'followup', icon: 'pill', color: '#7B6FAA', bg: '#E8E4F5', label: 'Follow-Up Care', desc: 'Recovery checklist', step: 4 },
+  ];
+
+  return (
+    <div className="screen" style={{ background: 'var(--mist)' }}>
+      <StatusBar />
+      {/* Header */}
+      <div style={{ background: 'var(--sage)', padding: '0 24px 28px', borderRadius: '0 0 32px 32px' }}>
+        <div className="anim-fadeup stagger-1" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+          <div>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, marginBottom: 2 }}>{timeOfDay}</p>
+            <h1 style={{ color: 'white', fontSize: 26, fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
+              How are you<br />feeling today?
+            </h1>
+          </div>
+          <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="user" size={20} color="white" />
+          </div>
+        </div>
+        {/* Feeling selector */}
+        <div className="anim-fadeup stagger-2" style={{ display: 'flex', gap: 8 }}>
+          {['😊 Well', '😐 Okay', '😔 Unwell', '😣 Sick'].map((item, i) => (
+            <button key={i} onClick={() => i >= 2 && onNav('symptoms')}
+              style={{
+                flex: 1, padding: '8px 4px', borderRadius: 12,
+                background: i === 3 ? 'white' : 'rgba(255,255,255,0.18)',
+                border: i === 3 ? 'none' : '1px solid rgba(255,255,255,0.25)',
+                color: i === 3 ? 'var(--sage)' : 'white',
+                fontSize: 11, fontWeight: i === 3 ? 700 : 400,
+                cursor: 'pointer', textAlign: 'center',
+                transition: 'all 0.2s ease'
+              }}>
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Offline banner */}
+      <div className="anim-fadeup stagger-2" style={{ margin: '16px 20px 0', padding: '10px 14px', background: '#FFF8E8', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #F5E4A8' }}>
+        <Icon name="wifi" size={14} color="#B07D2A" />
+        <span style={{ fontSize: 12, color: '#7A5A1A' }}>Works with low connection — some features saved offline</span>
+      </div>
+
+      {/* Steps */}
+      <div style={{ padding: '20px 20px 8px' }}>
+        <p className="anim-fadeup stagger-3" style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94A3A8', marginBottom: 12 }}>Your Care Journey</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {steps.map((s, i) => (
+            <button key={s.id} onClick={() => onNav(s.id)}
+              className={`card-hover anim-fadeup stagger-${i + 2}`}
+              style={{ background: 'white', borderRadius: 18, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', boxShadow: '0 2px 10px rgba(44,62,53,0.06)' }}>
+              <div style={{ width: 46, height: 46, borderRadius: 14, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon name={s.icon} size={22} color={s.color} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <span style={{ fontSize: 10, background: s.bg, color: s.color, borderRadius: 6, padding: '1px 6px', fontWeight: 700 }}>Step {s.step}</span>
+                </div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: 'var(--charcoal)' }}>{s.label}</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#94A3A8', marginTop: 1 }}>{s.desc}</p>
+              </div>
+              <Icon name="chevronRight" size={16} color="#CBD5D1" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Emergency */}
+      <div style={{ margin: '12px 20px 24px', padding: '14px 16px', background: 'linear-gradient(135deg, #FEE2E2, #FEF3C7)', borderRadius: 16, display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: '#FCA5A5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="phone" size={18} color="#DC2626" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#DC2626' }}>Emergency? Call Now</p>
+          <p style={{ margin: 0, fontSize: 11, color: '#92400E' }}>Tap to connect — available 24/7</p>
+        </div>
+        <Icon name="chevronRight" size={16} color="#DC2626" />
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   SCREEN 2 — SYMPTOM CHECKER
+══════════════════════════════════════ */
+const SymptomsScreen = ({ onNav }) => {
+  const [selected, setSelected] = useState([]);
+  const [severity, setSeverity] = useState(null);
+  const [duration, setDuration] = useState(null);
+  const [result, setResult] = useState(null);
+
+  const symptoms = [
+    { id: 'fever', label: 'Fever', emoji: '🌡️' },
+    { id: 'headache', label: 'Headache', emoji: '🤕' },
+    { id: 'cough', label: 'Cough', emoji: '😮‍💨' },
+    { id: 'fatigue', label: 'Fatigue', emoji: '😴' },
+    { id: 'nausea', label: 'Nausea', emoji: '🤢' },
+    { id: 'pain', label: 'Body Pain', emoji: '💢' },
+    { id: 'breath', label: 'Breathlessness', emoji: '🫁' },
+    { id: 'throat', label: 'Sore Throat', emoji: '🤒' },
+    { id: 'stomach', label: 'Stomach Ache', emoji: '🫀' },
+    { id: 'dizziness', label: 'Dizziness', emoji: '💫' },
+  ];
+
+  const toggle = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const analyze = () => {
+    const isUrgent = selected.includes('breath') || (severity === 'severe' && selected.length >= 3);
+    setResult(isUrgent ? 'urgent' : selected.length >= 2 ? 'moderate' : 'mild');
+  };
+
+  if (result) {
+    const configs = {
+      urgent: { color: '#DC2626', bg: '#FEE2E2', label: 'Seek Care Promptly', icon: 'alert', msg: 'Your symptoms suggest you should see a doctor soon. We recommend booking within 24 hours.' },
+      moderate: { color: 'var(--clay)', bg: 'var(--clay-light)', label: 'See a Doctor', icon: 'heart', msg: 'Your symptoms are worth a check-up. Book an appointment at your convenience this week.' },
+      mild: { color: 'var(--sage)', bg: 'var(--sage-pale)', label: 'Monitor & Rest', icon: 'check', msg: 'Your symptoms appear mild. Rest well, stay hydrated. See a doctor if symptoms worsen.' },
+    };
+    const c = configs[result];
+    return (
+      <div className="screen" style={{ background: 'var(--mist)' }}>
+        <StatusBar light />
+        <div style={{ padding: '20px 24px' }}>
+          <div className="anim-fadeup" style={{ textAlign: 'center', padding: '32px 0 24px' }}>
+            <div className="anim-breathe" style={{ width: 80, height: 80, borderRadius: '50%', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <Icon name={c.icon} size={36} color={c.color} />
+            </div>
+            <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 24, color: 'var(--charcoal)', margin: '0 0 8px' }}>{c.label}</h2>
+            <p style={{ color: '#6B7C74', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px' }}>{c.msg}</p>
+          </div>
+          <div className="anim-fadeup stagger-2" style={{ background: 'white', borderRadius: 18, padding: '16px', marginBottom: 14, boxShadow: '0 2px 12px rgba(44,62,53,0.07)' }}>
+            <p style={{ margin: '0 0 10px', fontWeight: 700, fontSize: 13, color: 'var(--charcoal)' }}>Symptoms you reported</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {selected.map(id => {
+                const s = symptoms.find(x => x.id === id);
+                return <span key={id} style={{ background: 'var(--sage-pale)', color: 'var(--sage)', borderRadius: 20, padding: '4px 10px', fontSize: 12, fontWeight: 500 }}>{s.emoji} {s.label}</span>;
+              })}
+            </div>
+          </div>
+          <button onClick={() => onNav('book')}
+            className="pulse-btn"
+            style={{ width: '100%', padding: '16px', borderRadius: 16, background: 'var(--sage)', color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            Book an Appointment <Icon name="arrow" size={18} color="white" />
+          </button>
+          <button onClick={() => { setResult(null); setSelected([]); setSeverity(null); setDuration(null); }}
+            style={{ width: '100%', padding: '14px', borderRadius: 16, background: 'transparent', color: 'var(--sage)', border: '1.5px solid var(--sage-light)', fontWeight: 600, fontSize: 14, cursor: 'pointer', marginTop: 10 }}>
+            Check Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen" style={{ background: 'var(--mist)' }}>
+      <StatusBar light />
+      <ProgressBar step={selected.length > 0 ? (severity ? 3 : 2) : 1} total={3} label="Symptom Check" />
+      <div style={{ padding: '16px 20px' }}>
+        <h2 className="anim-fadeup" style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '0 0 4px' }}>What are you feeling?</h2>
+        <p className="anim-fadeup stagger-1" style={{ color: '#7A9088', fontSize: 13, margin: '0 0 18px' }}>Select all that apply — take your time</p>
+
+        <div className="anim-fadeup stagger-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
+          {symptoms.map(s => {
+            const sel = selected.includes(s.id);
+            return (
+              <button key={s.id} onClick={() => toggle(s.id)}
+                className="symptom-chip"
+                style={{
+                  padding: '12px 14px', borderRadius: 14, border: `2px solid ${sel ? 'var(--sage)' : '#E4EDE8'}`,
+                  background: sel ? 'var(--sage-pale)' : 'white',
+                  display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                  boxShadow: sel ? '0 2px 8px rgba(92,140,110,0.2)' : 'none',
+                }}>
+                <span style={{ fontSize: 20 }}>{s.emoji}</span>
+                <span style={{ fontSize: 13, fontWeight: sel ? 700 : 500, color: sel ? 'var(--sage)' : 'var(--charcoal)' }}>{s.label}</span>
+                {sel && <div className="anim-check" style={{ marginLeft: 'auto', width: 18, height: 18, borderRadius: '50%', background: 'var(--sage)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="check" size={10} color="white" strokeWidth={3} /></div>}
+              </button>
+            );
+          })}
+        </div>
+
+        {selected.length > 0 && (
+          <div className="anim-fadeup" style={{ background: 'white', borderRadius: 16, padding: '16px', marginBottom: 16, boxShadow: '0 2px 10px rgba(44,62,53,0.06)' }}>
+            <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 13, color: 'var(--charcoal)' }}>How severe are these symptoms?</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['Mild', 'Moderate', 'Severe'].map(level => (
+                <button key={level} onClick={() => setSeverity(level.toLowerCase())}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    border: `2px solid ${severity === level.toLowerCase() ? 'var(--sage)' : '#E4EDE8'}`,
+                    background: severity === level.toLowerCase() ? 'var(--sage-pale)' : 'white',
+                    color: severity === level.toLowerCase() ? 'var(--sage)' : '#7A9088',
+                  }}>{level}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selected.length > 0 && severity && (
+          <div className="anim-fadeup" style={{ background: 'white', borderRadius: 16, padding: '16px', marginBottom: 20, boxShadow: '0 2px 10px rgba(44,62,53,0.06)' }}>
+            <p style={{ margin: '0 0 10px', fontWeight: 600, fontSize: 13, color: 'var(--charcoal)' }}>How long have you felt this way?</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {['Today', '2–3 days', '1 week', '2+ weeks'].map(d => (
+                <button key={d} onClick={() => setDuration(d)}
+                  style={{
+                    flex: '1 0 calc(50% - 4px)', padding: '8px', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    border: `2px solid ${duration === d ? 'var(--sage)' : '#E4EDE8'}`,
+                    background: duration === d ? 'var(--sage-pale)' : 'white',
+                    color: duration === d ? 'var(--sage)' : '#7A9088',
+                  }}>{d}</button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="floating-cta">
+        <button onClick={analyze}
+          disabled={selected.length === 0 || !severity || !duration}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 16,
+            background: (selected.length > 0 && severity && duration) ? 'var(--sage)' : '#D1DDD8',
+            color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: (selected.length > 0 && severity && duration) ? 'pointer' : 'not-allowed',
+            transition: 'all 0.25s ease',
+          }}>
+          Analyse Symptoms →
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   SCREEN 3 — BOOK APPOINTMENT
+══════════════════════════════════════ */
+const BookScreen = ({ onNav }) => {
+  const [step, setStep] = useState(1);
+  const [dept, setDept] = useState(null);
+  const [doctor, setDoctor] = useState(null);
+  const [date, setDate] = useState(null);
+  const [time, setTime] = useState(null);
+  const [confirmed, setConfirmed] = useState(false);
+
+  const depts = [
+    { id: 'gp', label: 'General Practice', icon: '🩺', wait: '~20 min' },
+    { id: 'cardio', label: 'Cardiology', icon: '❤️', wait: '~45 min' },
+    { id: 'ortho', label: 'Orthopedics', icon: '🦴', wait: '~35 min' },
+    { id: 'ent', label: 'ENT', icon: '👂', wait: '~25 min' },
+    { id: 'derm', label: 'Dermatology', icon: '🌿', wait: '~30 min' },
+    { id: 'peds', label: 'Pediatrics', icon: '👶', wait: '~20 min' },
+  ];
+
+  const doctors = [
+    { id: 1, name: 'Dr. Amara Nkosi', spec: 'General Practitioner', rating: 4.9, avail: 'Today' },
+    { id: 2, name: 'Dr. Lena Müller', spec: 'Internal Medicine', rating: 4.7, avail: 'Tomorrow' },
+    { id: 3, name: 'Dr. James Osei', spec: 'General Practice', rating: 4.8, avail: 'Today' },
+  ];
+
+  const dates = ['Today\nApr 30', 'Tue\nMay 1', 'Wed\nMay 2', 'Thu\nMay 3', 'Fri\nMay 4'];
+  const times = ['8:30 AM', '9:00 AM', '10:15 AM', '11:30 AM', '2:00 PM', '3:45 PM', '4:30 PM'];
+
+  if (confirmed) {
+    return (
+      <div className="screen" style={{ background: 'var(--mist)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px' }}>
+        <div className="anim-check" style={{ width: 88, height: 88, borderRadius: '50%', background: 'var(--sage)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, boxShadow: '0 8px 32px rgba(92,140,110,0.35)' }}>
+          <Icon name="check" size={40} color="white" strokeWidth={2.5} />
+        </div>
+        <h2 className="anim-fadeup" style={{ fontFamily: 'Fraunces, serif', fontSize: 26, color: 'var(--charcoal)', textAlign: 'center', margin: '0 0 8px' }}>Appointment Booked!</h2>
+        <p className="anim-fadeup stagger-1" style={{ color: '#7A9088', fontSize: 14, textAlign: 'center', marginBottom: 28 }}>You're all set. We'll remind you 1 hour before.</p>
+        <div className="anim-fadeup stagger-2" style={{ background: 'white', borderRadius: 20, padding: '20px', width: '100%', boxShadow: '0 4px 20px rgba(44,62,53,0.08)', marginBottom: 16 }}>
+          {[
+            ['Doctor', doctors[0].name],
+            ['Date', dates[date || 0].replace('\n', ' ')],
+            ['Time', time || '9:00 AM'],
+            ['Location', 'Kigali Central Hospital, Block B'],
+          ].map(([k, v]) => (
+            <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--sage-pale)' }}>
+              <span style={{ fontSize: 13, color: '#94A3A8' }}>{k}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--charcoal)' }}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <button onClick={() => onNav('navigate')}
+          className="anim-fadeup stagger-3"
+          style={{ width: '100%', padding: '16px', borderRadius: 16, background: 'var(--sage)', color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+          Navigate to Hospital →
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen" style={{ background: 'var(--mist)' }}>
+      <StatusBar light />
+      <ProgressBar step={step} total={4} label="Booking" />
+      <div style={{ padding: '16px 20px 100px' }}>
+
+        {step === 1 && (
+          <div className="anim-fadein">
+            <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '8px 0 4px' }}>Choose Department</h2>
+            <p style={{ color: '#7A9088', fontSize: 13, margin: '0 0 18px' }}>Based on your symptoms, we suggest General Practice</p>
+            <div style={{ background: 'linear-gradient(135deg, var(--sage-pale), #E8F4EF)', borderRadius: 14, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="star" size={14} color="var(--sage)" />
+              <span style={{ fontSize: 12, color: 'var(--sage)', fontWeight: 500 }}>Recommended: General Practice based on symptoms</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+              {depts.map(d => (
+                <button key={d.id} onClick={() => { setDept(d.id); setStep(2); }}
+                  className="card-hover"
+                  style={{ background: dept === d.id ? 'var(--sage-pale)' : 'white', borderRadius: 16, padding: '16px 12px', border: `2px solid ${dept === d.id ? 'var(--sage)' : '#E4EDE8'}`, cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 8px rgba(44,62,53,0.05)' }}>
+                  <span style={{ fontSize: 28, display: 'block', marginBottom: 8 }}>{d.icon}</span>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: 13, color: 'var(--charcoal)' }}>{d.label}</p>
+                  <p style={{ margin: '3px 0 0', fontSize: 11, color: '#94A3A8' }}>Avg wait {d.wait}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="anim-fadein">
+            <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--sage)', fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 12 }}>
+              <Icon name="chevronLeft" size={16} color="var(--sage)" /> Back
+            </button>
+            <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '0 0 4px' }}>Choose Your Doctor</h2>
+            <p style={{ color: '#7A9088', fontSize: 13, margin: '0 0 18px' }}>All doctors are available and verified</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {doctors.map(d => (
+                <button key={d.id} onClick={() => { setDoctor(d.id); setStep(3); }}
+                  className="card-hover"
+                  style={{ background: 'white', borderRadius: 18, padding: '16px', display: 'flex', alignItems: 'center', gap: 14, border: `2px solid ${doctor === d.id ? 'var(--sage)' : '#E4EDE8'}`, cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 10px rgba(44,62,53,0.06)' }}>
+                  <div style={{ width: 50, height: 50, borderRadius: 16, background: 'var(--sage-pale)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>👩‍⚕️</div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: 'var(--charcoal)' }}>{d.name}</p>
+                    <p style={{ margin: '2px 0', fontSize: 12, color: '#7A9088' }}>{d.spec}</p>
+                    <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                      <span style={{ fontSize: 11, background: '#FFF8E8', color: '#B07D2A', borderRadius: 6, padding: '1px 6px', fontWeight: 600 }}>⭐ {d.rating}</span>
+                      <span style={{ fontSize: 11, background: 'var(--sage-pale)', color: 'var(--sage)', borderRadius: 6, padding: '1px 6px', fontWeight: 600 }}>✅ {d.avail}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="anim-fadein">
+            <button onClick={() => setStep(2)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--sage)', fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 12 }}>
+              <Icon name="chevronLeft" size={16} color="var(--sage)" /> Back
+            </button>
+            <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '0 0 4px' }}>Pick a Date & Time</h2>
+            <p style={{ color: '#7A9088', fontSize: 13, margin: '0 0 16px' }}>Available slots shown below</p>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 20 }}>
+              {dates.map((d, i) => (
+                <button key={i} onClick={() => setDate(i)}
+                  style={{ flexShrink: 0, padding: '10px 14px', borderRadius: 14, border: `2px solid ${date === i ? 'var(--sage)' : '#E4EDE8'}`, background: date === i ? 'var(--sage)' : 'white', color: date === i ? 'white' : 'var(--charcoal)', cursor: 'pointer', textAlign: 'center', minWidth: 70 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, opacity: 0.75, whiteSpace: 'pre-line', lineHeight: 1.6 }}>{d}</div>
+                </button>
+              ))}
+            </div>
+            <p style={{ fontWeight: 700, fontSize: 13, color: 'var(--charcoal)', marginBottom: 10 }}>Available Times</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+              {times.map(t => (
+                <button key={t} onClick={() => setTime(t)}
+                  style={{ padding: '10px', borderRadius: 12, border: `2px solid ${time === t ? 'var(--sage)' : '#E4EDE8'}`, background: time === t ? 'var(--sage-pale)' : 'white', color: time === t ? 'var(--sage)' : 'var(--charcoal)', cursor: 'pointer', fontSize: 12, fontWeight: time === t ? 700 : 500 }}>
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="anim-fadein">
+            <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '8px 0 20px' }}>Confirm Booking</h2>
+            <div style={{ background: 'white', borderRadius: 20, padding: '20px', boxShadow: '0 4px 16px rgba(44,62,53,0.08)' }}>
+              {[
+                ['Department', depts.find(d => d.id === dept)?.label || 'General Practice'],
+                ['Doctor', doctors[0].name],
+                ['Date', dates[date || 0].replace('\n', ' ')],
+                ['Time', time || '—'],
+                ['Location', 'Kigali Central Hospital'],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--sage-pale)' }}>
+                  <span style={{ fontSize: 13, color: '#94A3A8' }}>{k}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--charcoal)' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: 'var(--sage-pale)', borderRadius: 14, padding: '12px', marginTop: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="bell" size={14} color="var(--sage)" />
+              <span style={{ fontSize: 12, color: 'var(--sage)' }}>You'll receive a reminder 1 hour before your appointment</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {step < 4 && step > 2 && date !== null && time && (
+        <div className="floating-cta">
+          <button onClick={() => setStep(4)} style={{ width: '100%', padding: '16px', borderRadius: 16, background: 'var(--sage)', color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            Review Booking →
+          </button>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="floating-cta">
+          <button onClick={() => setConfirmed(true)} style={{ width: '100%', padding: '16px', borderRadius: 16, background: 'var(--sage)', color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            Confirm Appointment ✓
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   SCREEN 4 — HOSPITAL NAVIGATION
+══════════════════════════════════════ */
+const NavigateScreen = ({ onNav }) => {
+  const [step, setStep] = useState(0);
+  const [arrivedAt, setArrivedAt] = useState(null);
+
+  const navSteps = [
+    { icon: '🚶', label: 'Enter Main Entrance', detail: 'Through the large glass doors on Kigali Ave. Security check at door.', color: '#5C8C6E', bg: '#EBF4EF', done: false },
+    { icon: '🏢', label: 'Go to Reception Desk', detail: 'Reception is straight ahead, 20 metres from entrance. Show your booking confirmation.', color: 'var(--teal)', bg: 'var(--teal-light)', done: false },
+    { icon: '🛗', label: 'Take Elevator to Floor 3', detail: 'Elevators are on the left. Press "3" for General Practice. No stairs needed.', color: '#7B6FAA', bg: '#E8E4F5', done: false },
+    { icon: '🚪', label: 'Room B-304', detail: 'Turn right from elevator. Room 304 is the 3rd door on the left. Blue sign above door.', color: 'var(--clay)', bg: 'var(--clay-light)', done: false },
+    { icon: '🪑', label: 'Check In & Wait', detail: 'Scan your QR code at the kiosk or tell the nurse your name. Sit in the waiting area.', color: 'var(--sage)', bg: 'var(--sage-pale)', done: false },
+  ];
+
+  return (
+    <div className="screen" style={{ background: 'var(--mist)' }}>
+      <StatusBar light />
+      <div style={{ padding: '12px 20px 6px' }}>
+        <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '4px 0 2px' }}>Navigate to Your Appointment</h2>
+        <p style={{ color: '#7A9088', fontSize: 13, margin: '0 0 16px' }}>Step-by-step guidance · Room B-304</p>
+      </div>
+
+      {/* Map placeholder */}
+      <div style={{ margin: '0 20px 16px', borderRadius: 20, overflow: 'hidden', height: 140, background: 'linear-gradient(135deg, #B2D8DF 0%, #A8C5B5 100%)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.15, background: 'url("data:image/svg+xml,%3Csvg width=\'40\' height=\'40\' viewBox=\'0 0 40 40\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Cpath d=\'M0 40L40 0H20L0 20M40 40V20L20 40\'/%3E%3C/g%3E%3C/svg%3E")' }} />
+        <div style={{ textAlign: 'center', zIndex: 1 }}>
+          <div className="anim-breathe" style={{ width: 48, height: 48, borderRadius: '50%', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' }}>
+            <Icon name="location" size={22} color="var(--sage)" />
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'white', textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>Kigali Central Hospital</span>
+        </div>
+        <div style={{ position: 'absolute', bottom: 10, right: 12, background: 'white', borderRadius: 8, padding: '4px 10px', fontSize: 11, fontWeight: 700, color: 'var(--sage)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>2.3 km away</div>
+        <div style={{ position: 'absolute', bottom: 10, left: 12, background: 'rgba(255,255,255,0.9)', borderRadius: 8, padding: '4px 10px', fontSize: 11, color: '#7A9088' }}>📡 Offline map saved</div>
+      </div>
+
+      {/* Steps */}
+      <div style={{ padding: '0 20px 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {navSteps.map((s, i) => {
+            const completed = i < step;
+            const current = i === step;
+            return (
+              <div key={i} style={{ display: 'flex', gap: 14 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <button onClick={() => setStep(i < navSteps.length - 1 ? i + 1 : i)}
+                    style={{
+                      width: 44, height: 44, borderRadius: '50%',
+                      background: completed ? 'var(--sage)' : current ? s.bg : '#F0F5F2',
+                      border: `2px solid ${completed ? 'var(--sage)' : current ? s.color : '#E4EDE8'}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', fontSize: 18, flexShrink: 0,
+                      boxShadow: current ? '0 4px 14px rgba(92,140,110,0.25)' : 'none',
+                      transition: 'all 0.25s ease',
+                    }}>
+                    {completed ? <Icon name="check" size={18} color="white" strokeWidth={2.5} /> : s.icon}
+                  </button>
+                  {i < navSteps.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 20, background: completed ? 'var(--sage)' : '#E4EDE8', margin: '4px 0' }} />}
+                </div>
+                <div style={{ paddingBottom: 16, paddingTop: 8, flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: current ? 700 : 600, fontSize: 14, color: completed ? '#94A3A8' : 'var(--charcoal)', textDecoration: completed ? 'line-through' : 'none' }}>{s.label}</p>
+                  {current && <p style={{ margin: '4px 0 0', fontSize: 12, color: '#7A9088', lineHeight: 1.5 }}>{s.detail}</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {step === navSteps.length - 1 && (
+          <button onClick={() => onNav('followup')}
+            className="anim-fadeup pulse-btn"
+            style={{ width: '100%', marginTop: 8, padding: '16px', borderRadius: 16, background: 'var(--sage)', color: 'white', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            I've Arrived! Start Check-In →
+          </button>
+        )}
+        {step < navSteps.length - 1 && (
+          <button onClick={() => setStep(s => s + 1)}
+            style={{ width: '100%', marginTop: 8, padding: '14px', borderRadius: 16, background: 'var(--sage-pale)', color: 'var(--sage)', border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+            Mark Step Done & Continue →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   SCREEN 5 — FOLLOW-UP CARE
+══════════════════════════════════════ */
+const FollowUpScreen = () => {
+  const [checks, setChecks] = useState({});
+  const [mood, setMood] = useState(null);
+
+  const sections = [
+    {
+      title: 'Medication Reminders', icon: '💊', color: '#7B6FAA',
+      items: ['Take prescribed medication with food', 'Do not skip doses — set daily alarm', 'Complete the full course even if feeling better'],
+    },
+    {
+      title: 'Rest & Recovery', icon: '🛌', color: 'var(--teal)',
+      items: ['Rest for at least 48 hours', 'Drink 8+ glasses of water per day', 'Avoid strenuous activity this week'],
+    },
+    {
+      title: 'Monitor Symptoms', icon: '🌡️', color: 'var(--clay)',
+      items: ['Check temperature twice daily', 'Note any new symptoms in a diary', 'Return to hospital if symptoms worsen'],
+    },
+    {
+      title: 'Follow-Up Appointment', icon: '📅', color: 'var(--sage)',
+      items: ['Schedule follow-up within 7 days', 'Bring all medications to next visit', 'Ask doctor about test results'],
+    },
+  ];
+
+  const allItems = sections.flatMap(s => s.items);
+  const totalChecked = Object.values(checks).filter(Boolean).length;
+  const pct = Math.round((totalChecked / allItems.length) * 100);
+
+  const toggle = (key) => setChecks(prev => ({ ...prev, [key]: !prev[key] }));
+
+  return (
+    <div className="screen" style={{ background: 'var(--mist)' }}>
+      <StatusBar light />
+      <div style={{ padding: '12px 20px 6px' }}>
+        <h2 style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: '4px 0 2px' }}>Follow-Up Care</h2>
+        <p style={{ color: '#7A9088', fontSize: 13, margin: '0 0 16px' }}>Your recovery checklist — saved offline</p>
+
+        {/* Progress ring-ish */}
+        <div style={{ background: 'white', borderRadius: 20, padding: '16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 2px 12px rgba(44,62,53,0.07)' }}>
+          <div style={{ position: 'relative', width: 64, height: 64, flexShrink: 0 }}>
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#EBF4EF" strokeWidth="6" />
+              <circle cx="32" cy="32" r="26" fill="none" stroke="var(--sage)" strokeWidth="6"
+                strokeDasharray={`${2 * Math.PI * 26}`}
+                strokeDashoffset={`${2 * Math.PI * 26 * (1 - pct / 100)}`}
+                strokeLinecap="round" transform="rotate(-90 32 32)"
+                style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--sage)' }}>{pct}%</span>
+            </div>
+          </div>
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: 'var(--charcoal)' }}>Recovery Progress</p>
+            <p style={{ margin: '3px 0 0', fontSize: 13, color: '#94A3A8' }}>{totalChecked} of {allItems.length} tasks complete</p>
+            {pct === 100 && <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--sage)', fontWeight: 700 }}>🎉 All done! Great job!</p>}
+          </div>
+        </div>
+
+        {/* Mood */}
+        <div style={{ background: 'white', borderRadius: 16, padding: '14px 16px', marginBottom: 16, boxShadow: '0 2px 8px rgba(44,62,53,0.05)' }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 700, fontSize: 13, color: 'var(--charcoal)' }}>How are you feeling today?</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['😣 Poor', '😐 Okay', '😊 Good', '🌟 Great'].map((m, i) => (
+              <button key={i} onClick={() => setMood(i)}
+                style={{ flex: 1, padding: '8px 4px', borderRadius: 10, border: `2px solid ${mood === i ? 'var(--sage)' : '#E4EDE8'}`, background: mood === i ? 'var(--sage-pale)' : 'white', cursor: 'pointer', fontSize: 10, fontWeight: mood === i ? 700 : 500, color: mood === i ? 'var(--sage)' : '#7A9088', lineHeight: 1.4 }}>
+                {m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Checklists */}
+        {sections.map((section, si) => (
+          <div key={si} style={{ background: 'white', borderRadius: 18, padding: '16px', marginBottom: 12, boxShadow: '0 2px 10px rgba(44,62,53,0.06)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 20 }}>{section.icon}</span>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: 'var(--charcoal)' }}>{section.title}</p>
+            </div>
+            {section.items.map((item, ii) => {
+              const key = `${si}-${ii}`;
+              const done = checks[key];
+              return (
+                <button key={ii} onClick={() => toggle(key)}
+                  style={{ width: '100%', background: done ? 'var(--sage-pale)' : '#FAFCFA', borderRadius: 10, padding: '10px 12px', marginBottom: 6, display: 'flex', alignItems: 'flex-start', gap: 10, border: `1.5px solid ${done ? 'var(--sage-light)' : '#EDF2EF'}`, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s ease' }}>
+                  <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${done ? 'var(--sage)' : '#CBD5D1'}`, background: done ? 'var(--sage)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1, transition: 'all 0.2s ease' }}>
+                    {done && <Icon name="check" size={11} color="white" strokeWidth={3} />}
+                  </div>
+                  <span style={{ fontSize: 13, lineHeight: 1.5, color: done ? '#94A3A8' : 'var(--charcoal)', textDecoration: done ? 'line-through' : 'none', fontWeight: done ? 400 : 500 }}>{item}</span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+
+        {/* Emergency re-visit */}
+        <div style={{ background: 'linear-gradient(135deg, #FEE2E2, #FEF3C7)', borderRadius: 16, padding: '14px 16px', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Icon name="alert" size={20} color="#DC2626" />
+          <div>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#DC2626' }}>When to Return Immediately</p>
+            <p style={{ margin: '3px 0 0', fontSize: 11, color: '#92400E', lineHeight: 1.5 }}>High fever, difficulty breathing, chest pain, or sudden severe symptoms</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════ */
+const App = () => {
+  const [screen, setScreen] = useState('home');
+  const prev = useRef(screen);
+
+  const screens = { home: HomeScreen, symptoms: SymptomsScreen, book: BookScreen, navigate: NavigateScreen, followup: FollowUpScreen };
+  const Screen = screens[screen] || HomeScreen;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', padding: '32px 16px', background: 'linear-gradient(135deg, #d0ddd2 0%, #c8d8cc 100%)' }}>
+      {/* Desktop label */}
+      <div style={{ marginBottom: 16, textAlign: 'center' }}>
+        <p style={{ fontFamily: 'Fraunces, serif', fontSize: 22, color: 'var(--charcoal)', margin: 0, opacity: 0.7 }}>CareGuide</p>
+        <p style={{ fontSize: 12, color: '#7A9088', margin: '2px 0 0' }}>Living Patient Appointment Experience</p>
+      </div>
+
+      <div className="phone-shell">
+        <Screen onNav={setScreen} />
+        <BottomNav active={screen} onNav={setScreen} />
+      </div>
+
+      <p style={{ marginTop: 16, fontSize: 11, color: '#7A9088', textAlign: 'center', maxWidth: 390 }}>
+        Mobile-first · Offline-ready · Low-bandwidth optimized · Designed for all literacy levels
+      </p>
+    </div>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
