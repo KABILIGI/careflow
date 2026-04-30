@@ -297,9 +297,11 @@ This is a prototype. To extend it:
 
 ## License
 
-This project is released for educational and prototyping purposes.  
+This project is released for educational and prototyping purposes. 
+
 © 2026 CareGuide Project. All rights reserved.
 
 ---
 
-*Built with care for patients who need it most.*
+*shema kabirigi Denys
+25rpoo642
