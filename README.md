@@ -27,12 +27,11 @@
 
 ---
 
-
-![firstpage](1.png)
-![secondpage](2.png)
-![Thirdpage](3.png)
-![forthpage](4.png)
-![fivepage](5.png)
+![Page 1](1.png)
+![Page 2](2.png)
+![Page 3](3.png)
+![Page 4](4.png)
+![Page 5](5.png)
 
 
 
