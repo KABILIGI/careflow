@@ -27,6 +27,17 @@
 
 ---
 
+
+![first page](1.png)
+![second page](2.png)
+![Third page](3.png)
+![forth page](4.png)
+![five page](5.png)
+
+
+
+
+
 ## Overview
 
 CareGuide is a single-file, mobile-first healthcare product prototype that accompanies patients across their entire care journey. It is designed to feel like a **living system** — one that responds to actions, provides contextual guidance at every step, and reduces confusion for users who may be sick, stressed, or unfamiliar with digital tools.
