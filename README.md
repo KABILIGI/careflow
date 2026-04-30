@@ -41,7 +41,7 @@
 
 CareGuide is a single-file, mobile-first healthcare product prototype that accompanies patients across their entire care journey. It is designed to feel like a **living system** — one that responds to actions, provides contextual guidance at every step, and reduces confusion for users who may be sick, stressed, or unfamiliar with digital tools.
 
-The application is delivered as a single `index.html` file requiring no build process, no server, and no installation. It runs in any modern browser and degrades gracefully under low connectivity.
+
 
 ---
 
@@ -143,8 +143,8 @@ README.md                   ← This document
 ### Internal code organisation (inside `index.html`)
 
 ```
-index.html
-├── <head>
+careflow
+├── <docs>
 │   ├── React + ReactDOM (CDN)
 │   ├── Babel Standalone (CDN)
 │   ├── Tailwind CSS (CDN)
@@ -302,5 +302,5 @@ This project is released for educational and prototyping purposes.
 
 ---
 
-*shema kabirigi Denys
+shema kabirigi Denys
 25rpoo642
